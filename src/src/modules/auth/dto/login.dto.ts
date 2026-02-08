@@ -20,4 +20,5 @@ export class LoginResponseDto{
 export class LoginServiceResponseDto{
     accessToken:string
     refreshToken:string
+    refreshTtl:number
 }

@@ -6,7 +6,7 @@ import { ExtractJwt, Strategy } from "passport-jwt";
 import { PrismaService } from "src/src/prisma/prisma.service";
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy){
+export class JwtStrategy extends PassportStrategy(Strategy,'jwt'){
     constructor(
         private readonly configService:ConfigService,
         private readonly prisma:PrismaService
@@ -23,6 +23,7 @@ export class JwtStrategy extends PassportStrategy(Strategy){
     }
 
     async validate(payload:{sub:string}): Promise<Omit<User,'password'>>{
+        
         const user = await this.prisma.user.findUnique({
             where:{
                 id:payload.sub
@@ -31,9 +32,10 @@ export class JwtStrategy extends PassportStrategy(Strategy){
                 password:true
             }
         })
+        
         if(!user){
-            throw new UnauthorizedException('Unauthorized')
+            throw new UnauthorizedException({},"Unauthorized access token")
         }
-        return user
+        return user 
     }
 }

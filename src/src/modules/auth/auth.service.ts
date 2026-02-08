@@ -6,6 +6,9 @@ import { JwtService } from '@nestjs/jwt';
 import { randomBytes } from 'crypto';
 import { User } from 'generated/prisma/client';
 import { LoginDto, LoginServiceResponseDto } from './dto/login.dto';
+import { ConfigService } from '@nestjs/config';
+import { RefreshTokenServiceResponseDto } from './dto/refresh.dto';
+import { RedisService } from 'src/src/redis/redis.service';
 
 @Injectable()
 export class AuthService {
@@ -13,7 +16,9 @@ export class AuthService {
     private readonly SALT_ROUNDS = 10;
 
     constructor(private readonly prisma:PrismaService,
-        private readonly jwtService:JwtService
+        private readonly jwtService:JwtService,
+        private readonly configService:ConfigService,
+        // private readonly redisService:RedisService
     ){}
 
 
@@ -72,22 +77,75 @@ export class AuthService {
         }
         const {accessToken,refreshToken} = await this.generateTokens(user.id)
 
-        await this.updateRefreshToken(user.id,refreshToken)
+        const {refreshTtl} = await this.updateRefreshToken(user.id,refreshToken)
+
+        // await this.redisService.setex(`user:${user.id}`,refreshTtl,refreshToken)
 
         return {
             accessToken,
             refreshToken,
+            refreshTtl
         }
     }
 
-    async updateRefreshToken(id:string,refreshToken:string):Promise<void>{
-        await this.prisma.user.update({
-            where:{
-                id
-            },
+    async updateRefreshToken(id:string,refreshToken:string):Promise<any>{
+        const refreshTtl = this.configService.get<number>(
+            'AUTH_JWT_REFRESH_TOKEN_TTL',
+            7 * 24 * 60 * 60
+        ) * 1000 + Date.now()
+
+        await this.prisma.refreshToken.create({
             data:{
-                refreshToken
+                token:refreshToken,
+                userId:id,
+                expiresAt:new Date(refreshTtl)
             }
         })
+
+        return {
+            refreshToken,
+            refreshTtl
+        }
+    }
+
+    async refreshUserAccessToken (refreshToken:string):Promise<RefreshTokenServiceResponseDto>{
+        const token = await this.prisma.refreshToken.findUnique({
+            where:{
+                token:refreshToken
+            }
+        })
+        if(!token || token.invokedAt){
+            throw new UnauthorizedException(`Invalid refresh token`)
+        }
+        if(token.expiresAt < new Date()){
+            throw new UnauthorizedException(`Refresh token expired`)
+        }
+
+        const shouldRotate = token.expiresAt < new Date(Date.now() + 24 * 60 * 60 * 1000)
+
+        if(shouldRotate){
+            await this.prisma.refreshToken.update({
+                where:{
+                    id:token.id
+                },
+                data:{
+                    invokedAt:new Date()
+                }
+            })
+
+            const {accessToken,refreshToken} = await this.generateTokens(token.userId)
+
+            const {refreshTtl} = await this.updateRefreshToken(token.userId,refreshToken)
+
+            return {
+                accessToken,
+                refreshToken,
+                refreshTtl
+            }
+        }
+        const {accessToken} = await this.generateTokens(token.userId)
+        return {
+            accessToken,
+        }
     }
 }

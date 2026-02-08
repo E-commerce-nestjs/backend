@@ -42,12 +42,12 @@ model User{
   firstName String?
   lastName String?
   role Role @default(USER)
-  refreshToken String?
-
+  
   // reltions
   orders Order[]
   carts Cart[]
   payments Payment[]
+  refreshTokens RefreshToken[]
 
 
   createdAt DateTime @default(now())
@@ -55,6 +55,21 @@ model User{
 
   @@index([email])
   @@map("users")
+}
+
+model RefreshToken{
+  id String @id @default(uuid())
+  token String @unique
+  expiresAt DateTime
+  invokedAt DateTime?
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([token])
+  @@map("refresh_tokens")
 }
 
 model Product {
