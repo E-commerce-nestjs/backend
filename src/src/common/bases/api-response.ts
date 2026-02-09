@@ -1,7 +1,7 @@
 import { HttpStatus } from '@nestjs/common';
 import { ApiResponseKey } from '../enums/api-response-key.enum';
 
-export interface ApiResponseData<T> {
+export interface AppResponseData<T> {
   [ApiResponseKey.STATUS]: boolean;
   [ApiResponseKey.CODE]: number;
   [ApiResponseKey.MESSAGE]: string;
@@ -10,8 +10,8 @@ export interface ApiResponseData<T> {
   [ApiResponseKey.TIMESTAMP]: string;
 }
 
-export class ApiResponse {
-  static ok<T>(data: T, message: string = '', httpStatus: HttpStatus = HttpStatus.OK): ApiResponseData<T> {
+export class AppResponse {
+  static ok<T>(data: T, message: string = '', httpStatus: HttpStatus = HttpStatus.OK): AppResponseData<T> {
     return {
       [ApiResponseKey.STATUS]: true,
       [ApiResponseKey.CODE]: httpStatus,
@@ -25,7 +25,7 @@ export class ApiResponse {
     errors: T,
     message: string = '',
     httpStatus: HttpStatus = HttpStatus.INTERNAL_SERVER_ERROR,
-  ): ApiResponseData<T> {
+  ): AppResponseData<T> {
     return {
       [ApiResponseKey.STATUS]: false,
       [ApiResponseKey.CODE]: httpStatus,
@@ -38,7 +38,7 @@ export class ApiResponse {
   static message(
     message: string = '',
     httpStatus: HttpStatus = HttpStatus.INTERNAL_SERVER_ERROR,
-  ): ApiResponseData<string> {
+  ): AppResponseData<string> {
     return {
       [ApiResponseKey.STATUS]: httpStatus >= 200 && httpStatus < 300,
       [ApiResponseKey.CODE]: httpStatus,

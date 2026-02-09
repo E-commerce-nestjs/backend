@@ -1,7 +1,7 @@
 
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { ApiResponse } from '../bases/api-response';
+import { AppResponse } from '../bases/api-response';
 
 @Catch(HttpException)
 export class GlobalExceptionFilter implements ExceptionFilter {
@@ -12,6 +12,6 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const message = exception.message || "Internal server error";
 
 
-    response.status(status).json(ApiResponse.message(message,status))
+    response.status(status).json(AppResponse.message(message,status))
   }
 }

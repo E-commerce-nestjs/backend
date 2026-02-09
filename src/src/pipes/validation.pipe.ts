@@ -2,7 +2,7 @@
 import { PipeTransform, Injectable, ArgumentMetadata, BadRequestException, HttpStatus } from '@nestjs/common';
 import { validate, ValidationError } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
-import { ApiResponse } from '../common/bases/api-response';
+import { AppResponse } from '../common/bases/api-response';
 
 @Injectable()
 export class ValidationPipe implements PipeTransform<any> {
@@ -15,7 +15,7 @@ export class ValidationPipe implements PipeTransform<any> {
     const errors = await validate(object);
     if (errors.length > 0) {
       const formatedErrors = this.formatErrors(errors)
-      const response = ApiResponse.error(formatedErrors,"Validation failed",HttpStatus.BAD_REQUEST) 
+      const response = AppResponse.error(formatedErrors,"Validation failed",HttpStatus.BAD_REQUEST) 
       console.log(response);
       
       throw new BadRequestException(response);
