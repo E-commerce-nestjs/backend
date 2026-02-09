@@ -1,10 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
-import { ValidationPipe } from './src/pipes/validation.pipe';
+import { ValidationPipe } from './common/pipes/validation.pipe';
 import cookieParser from 'cookie-parser';
-import { GlobalExceptionFilter } from './src/common/exceptions/global-exception.filer';
+import { GlobalExceptionFilter } from './common/exceptions/global-exception.filer';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { getCorsConfig } from './common/configs/cors.config';
 
 
 
@@ -12,10 +13,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // cors
-  app.enableCors({
-    origin: process.env.APP_ORIGIN_URL,
-    credentials: true,
-  });
+  app.enableCors(getCorsConfig());
 
   // swagger
   const config = new DocumentBuilder()
@@ -33,10 +31,11 @@ async function bootstrap() {
       },
       'JWT-auth',
     )
-    .addServer(process.env.API_URL as string,'Development server')
+    .addServer(`http://${process.env.API_URL || 'localhost:3000'}`,'Development server')
     .build()
   const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, documentFactory,{
+  if (process.env.NODE_ENV !== 'production') {
+    SwaggerModule.setup('api/docs', app, documentFactory,{
     swaggerOptions:{
       persistAuthorization: true,
       tagsSorter: "alpha",
@@ -50,7 +49,7 @@ async function bootstrap() {
       .swagger-ui .info .title {color: #4A90E2;}
     `,
   });
-
+}
 
   // api prefix
   app.setGlobalPrefix("api/v1");
