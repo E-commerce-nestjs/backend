@@ -1,9 +1,9 @@
-import { createParamDecorator, ExecutionContext } from "@nestjs/common";
-import { User as PrismaUser } from "generated/prisma/client";
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { UserWithoutPassword } from 'src/modules/users/types/user-without-pass.type';
 
-export const User = createParamDecorator((data:string, ctx:ExecutionContext):Omit<PrismaUser,'password'>=>{
+export const User = createParamDecorator((data: string, ctx: ExecutionContext): UserWithoutPassword => {
     const request = ctx.switchToHttp().getRequest();
     const user = request.user;
 
     return data ? user?.[data] : user;
-})
+});
