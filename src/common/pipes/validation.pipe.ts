@@ -5,13 +5,15 @@ import { AppResponse } from 'src/common/bases/api-response';
 
 @Injectable()
 export class ValidationPipe implements PipeTransform<any> {
-    async transform(value: any, { metatype }: ArgumentMetadata) {
-        if (!metatype || !this.toValidate(metatype)) {
+    async transform(value: any, { metatype, type }: ArgumentMetadata) {
+        if (type === 'custom' || !metatype || !this.toValidate(metatype)) {
             return value;
         }
 
         const object = plainToInstance(metatype, value);
         const errors = await validate(object);
+        console.log('errors', errors);
+
         if (errors.length > 0) {
             const formatedErrors = this.formatErrors(errors);
             const response = AppResponse.error(formatedErrors, 'Validation failed', HttpStatus.BAD_REQUEST);

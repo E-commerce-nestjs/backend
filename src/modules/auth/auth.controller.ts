@@ -12,9 +12,8 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto, RegisterResponseDto } from './dtos/register.dto';
-import { User } from 'generated/prisma/client';
 import { LoginDto, LoginResponseDto } from './dtos/login.dto';
-import { UserResponseDto } from './dtos/user-response.dto';
+import { UserResponseDto } from '../users/dtos/user-response.dto';
 import { type Request, type Response } from 'express';
 import { AppResponse, AppResponseData } from 'src/common/bases/api-response';
 import { setRefreshTokenCookie } from './helpers/cookies.helper';
@@ -24,7 +23,6 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagg
 import { createAppResponseDto } from 'src/common/dto/app-response.dto';
 import { UnauthorizedErrorResponseDto, ValidationErrorResponseDto } from 'src/common/dto/app-error-response.dto';
 import { Throttle } from '@nestjs/throttler';
-import { type UserWithoutPassword } from '../users/types/user-without-pass.type';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -45,9 +43,9 @@ export class AuthController {
         description: 'Validation failed or user already exists',
         type: ValidationErrorResponseDto,
     })
-    async register(@Body() registerDto: RegisterDto): Promise<AppResponseData<UserWithoutPassword>> {
+    async register(@Body() registerDto: RegisterDto): Promise<AppResponseData<UserResponseDto>> {
         const user = await this.authService.register(registerDto);
-        return AppResponse.ok<UserWithoutPassword>(user, 'Register successfully', HttpStatus.CREATED);
+        return AppResponse.ok<UserResponseDto>(user, 'Register successfully', HttpStatus.CREATED);
     }
 
     @Post('login')
@@ -119,7 +117,7 @@ export class AuthController {
         type: createAppResponseDto(UserResponseDto, { code: HttpStatus.OK, message: 'User retrieved successfully' }),
     })
     @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized', type: UnauthorizedErrorResponseDto })
-    async me(@UserDecorator() user: UserWithoutPassword): Promise<AppResponseData<UserWithoutPassword>> {
-        return AppResponse.ok<UserWithoutPassword>(user, 'Get user successfully', HttpStatus.OK);
+    async me(@UserDecorator() user: UserResponseDto): Promise<AppResponseData<UserResponseDto>> {
+        return AppResponse.ok<UserResponseDto>(user, 'Get user successfully', HttpStatus.OK);
     }
 }

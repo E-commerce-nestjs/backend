@@ -1,7 +1,7 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { UserWithoutPassword } from 'src/modules/users/types/user-without-pass.type';
+import { UserResponseDto } from '../../users/dtos/user-response.dto';
 
-export const User = createParamDecorator((data: string, ctx: ExecutionContext): UserWithoutPassword => {
+export const User = createParamDecorator((data: string, ctx: ExecutionContext): UserResponseDto => {
     const request = ctx.switchToHttp().getRequest();
     const user = request.user;
 

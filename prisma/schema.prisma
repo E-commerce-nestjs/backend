@@ -5,10 +5,10 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
   previewFeatures = ["multiSchema"]
-  moduleFormat    = "cjs"
+  moduleFormat = "cjs"
 }
 
 datasource db {
@@ -35,62 +35,62 @@ enum PaymentStatus {
   REFUNDED
 }
 
-model User{
-  id String @id @default(uuid())
-  email String @unique
-  password String
+model User {
+  id        String  @id @default(uuid())
+  email     String  @unique
+  password  String
   firstName String?
-  lastName String?
-  role Role @default(USER)
-  
-  // reltions
-  orders Order[]
-  carts Cart[]
-  payments Payment[]
-  refreshTokens RefreshToken[]
+  lastName  String?
+  role      Role    @default(USER)
 
+  // reltions
+  orders        Order[]
+  carts         Cart[]
+  payments      Payment[]
+  refreshTokens RefreshToken[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  deletedAt DateTime?
 
   @@index([email])
   @@map("users")
 }
 
-model RefreshToken{
-  id String @id @default(uuid())
-  token String @unique
+model RefreshToken {
+  id        String    @id @default(uuid())
+  token     String    @unique
   expiresAt DateTime
   invokedAt DateTime?
-  userId String
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   @@index([userId])
   @@index([token])
-  @@index([userId, expiresAt])  
+  @@index([userId, expiresAt])
   @@index([token, invokedAt])
   @@map("refresh_tokens")
 }
 
 model Product {
-  id String @id @default(uuid())
-  name String
+  id          String  @id @default(uuid())
+  name        String
   description String?
-  price Decimal @db.Decimal(10,2)
-  stock Int @default(0)
-  sku String @unique
-  imageUrl String?
-  isActive Boolean @default(true)
+  price       Decimal @db.Decimal(10, 2)
+  stock       Int     @default(0)
+  sku         String  @unique
+  imageUrl    String?
+  isActive    Boolean @default(true)
 
   //relations
 
   orderItems OrderItem[]
-  cartItems CartItem[]
+  cartItems  CartItem[]
 
   categoryId String
-  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -101,13 +101,13 @@ model Product {
   @@map("products")
 }
 
-model Category{
-  id String @id @default(uuid())
-  name String @unique
+model Category {
+  id          String  @id @default(uuid())
+  name        String  @unique
   description String?
-  slug String @unique
-  imageUrl String?
-  isActive Boolean @default(true)
+  slug        String  @unique
+  imageUrl    String?
+  isActive    Boolean @default(true)
 
   //relations
   products Product[]
@@ -121,16 +121,16 @@ model Category{
 }
 
 model OrderItem {
-  id String @id @default(uuid())
+  id       String  @id @default(uuid())
   quantity Int
-  price Decimal @db.Decimal(10,2)
+  price    Decimal @db.Decimal(10, 2)
 
   //relations
   productId String
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   orderId String
-  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -140,40 +140,39 @@ model OrderItem {
   @@map("order_items")
 }
 
-model CartItem{
-  id String @id @default(uuid())
+model CartItem {
+  id       String @id @default(uuid())
   quantity Int
 
   //relations
   cartId String
-  cart Cart @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  cart   Cart   @relation(fields: [cartId], references: [id], onDelete: Cascade)
 
   productId String
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([productId,cartId])
+  @@unique([productId, cartId])
   @@index([productId])
   @@index([cartId])
   @@map("cart_items")
 }
 
-model Order{
-  id String @id @default(uuid())
-  orderNumber String @unique @default(cuid())
-  status OrderStatus @default(PENDING)
-  totalAmount Decimal @db.Decimal(10,2)
+model Order {
+  id          String      @id @default(uuid())
+  orderNumber String      @unique @default(cuid())
+  status      OrderStatus @default(PENDING)
+  totalAmount Decimal     @db.Decimal(10, 2)
 
   userId String
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   shippingAddress String?
 
   orderItems OrderItem[]
-  payment Payment?
+  payment    Payment?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -189,7 +188,7 @@ model Cart {
 
   //relations
   userId String
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   cartItems CartItem[]
 
@@ -200,19 +199,19 @@ model Cart {
   @@map("carts")
 }
 
-model Payment{
-  id String @id @default(uuid())
-  amount Decimal @db.Decimal(10,2)
-  status PaymentStatus @default(PENDING)
-  currency String @default("usd")
+model Payment {
+  id            String        @id @default(uuid())
+  amount        Decimal       @db.Decimal(10, 2)
+  status        PaymentStatus @default(PENDING)
+  currency      String        @default("usd")
   paymentMethod String?
   transactionId String?
 
   userId String
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   orderId String @unique
-  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

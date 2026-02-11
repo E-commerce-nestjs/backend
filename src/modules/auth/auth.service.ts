@@ -4,12 +4,11 @@ import { RegisterDto } from './dtos/register.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { createHash, randomBytes } from 'crypto';
-import { User } from 'generated/prisma/client';
 import { LoginDto, LoginServiceResponseDto } from './dtos/login.dto';
 import { ConfigService } from '@nestjs/config';
 import { RefreshTokenServiceResponseDto } from './dtos/refresh.dto';
 import { RedisService } from '../redis/redis.service';
-import { UserWithoutPassword } from '../users/types/user-without-pass.type';
+import { UserResponseDto } from '../users/dtos/user-response.dto';
 
 @Injectable()
 export class AuthService {
@@ -23,7 +22,7 @@ export class AuthService {
         // private readonly redisService:RedisService
     ) {}
 
-    async register(registerDto: RegisterDto): Promise<UserWithoutPassword> {
+    async register(registerDto: RegisterDto): Promise<UserResponseDto> {
         const { firstName, lastName, email, password } = registerDto;
 
         const existingUser = await this.prisma.user.findUnique({

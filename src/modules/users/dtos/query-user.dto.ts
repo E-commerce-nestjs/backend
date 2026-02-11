@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer';
 import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 import { Role } from 'generated/prisma/enums';
+import { UserResponseDto } from './user-response.dto';
 
 export class QueryUserDto {
     @IsString({ message: 'Search must be a string' })
@@ -30,3 +31,6 @@ export class QueryUserDto {
     @Type(() => Number)
     limit?: number = 10;
 }
+
+export class FindAllUserResponseDto extends UserResponseDto {}
+export class FindOneUserResponseDto extends UserResponseDto {}

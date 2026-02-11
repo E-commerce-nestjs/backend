@@ -15,10 +15,10 @@ export class User {
     role: Role;
 
     @ApiProperty({ example: 'John', description: 'User first name', nullable: true })
-    firstName?: string;
+    firstName?: string | null;
 
     @ApiProperty({ example: 'Doe', description: 'User last name', nullable: true })
-    lastName?: string;
+    lastName?: string | null;
 
     @ApiProperty({ example: new Date().toISOString(), description: 'User created at' })
     createdAt: Date;

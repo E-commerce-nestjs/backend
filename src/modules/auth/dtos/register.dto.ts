@@ -1,6 +1,6 @@
 import { IsEmail, IsNotEmpty, IsOptional, IsString, Matches, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { UserResponseDto } from './user-response.dto';
+import { UserResponseDto } from '../../users/dtos/user-response.dto';
 import { Transform } from 'class-transformer';
 import { Match } from '../decorators/match.decorator';
 

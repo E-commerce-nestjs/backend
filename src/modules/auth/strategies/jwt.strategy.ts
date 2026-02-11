@@ -1,11 +1,10 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
-import { User } from 'generated/prisma/client';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RedisService } from '../../redis/redis.service';
-import { UserWithoutPassword } from 'src/modules/users/types/user-without-pass.type';
+import { UserResponseDto } from 'src/modules/users/dtos/user-response.dto';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -25,7 +24,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         });
     }
 
-    async validate(payload: { sub: string }): Promise<UserWithoutPassword> {
+    async validate(payload: { sub: string }): Promise<UserResponseDto> {
         const cacheKey = `user:${payload.sub}`;
 
         // check cache first
