@@ -12,6 +12,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { HealthModule } from './modules/health/health.module';
 import { ProductsModule } from './modules/products/products.module';
 import { OrdersModule } from './modules/orders/orders.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 
 @Module({
     imports: [
@@ -35,6 +36,7 @@ import { OrdersModule } from './modules/orders/orders.module';
         }),
         ProductsModule,
         OrdersModule,
+        PaymentsModule,
     ],
     controllers: [AppController],
     providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
