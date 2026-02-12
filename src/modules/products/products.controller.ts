@@ -3,7 +3,6 @@ import { ProductsService } from './products.service';
 import { CreateProductDto, CreateProductResponseDto } from './dtos/create-product.dto';
 import { AppResponse, AppResponseData } from 'src/common/bases/api-response';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
-import { Prisma } from 'generated/prisma/client';
 import { createAppResponseDto } from 'src/common/dto/app-response.dto';
 import { Roles } from '../auth/decorators/role.decorator';
 import { Role } from 'generated/prisma/enums';

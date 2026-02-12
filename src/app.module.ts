@@ -11,6 +11,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { HealthModule } from './modules/health/health.module';
 import { ProductsModule } from './modules/products/products.module';
+import { OrdersModule } from './modules/orders/orders.module';
 
 @Module({
     imports: [
@@ -24,24 +25,16 @@ import { ProductsModule } from './modules/products/products.module';
         RedisModule,
         UsersModule,
         HealthModule,
-        ThrottlerModule.forRoot([
-            {
-                name: 'short',
-                ttl: 1000,
-                limit: 3,
-            },
-            {
-                name: 'medium',
-                ttl: 10000,
-                limit: 20,
-            },
-            {
-                name: 'long',
-                ttl: 60000,
-                limit: 100,
-            },
-        ]),
+        ThrottlerModule.forRoot({
+            throttlers: [
+                {
+                    ttl: 1000,
+                    limit: 3,
+                },
+            ],
+        }),
         ProductsModule,
+        OrdersModule,
     ],
     controllers: [AppController],
     providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
