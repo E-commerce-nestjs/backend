@@ -10,6 +10,7 @@ import { validate } from './common/configs/env.validation';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { HealthModule } from './modules/health/health.module';
+import { ProductsModule } from './modules/products/products.module';
 
 @Module({
     imports: [
@@ -40,6 +41,7 @@ import { HealthModule } from './modules/health/health.module';
                 limit: 100,
             },
         ]),
+        ProductsModule,
     ],
     controllers: [AppController],
     providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

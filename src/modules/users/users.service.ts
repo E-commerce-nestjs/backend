@@ -50,23 +50,26 @@ export class UsersService {
             orderBy.createdAt = 'desc';
         }
 
-        const users = await this.prisma.user.findMany({
-            where,
-            orderBy,
-            skip: (page - 1) * limit,
-            take: limit,
-            omit: {
-                password: true,
-            },
-        });
+        const [users, total] = await Promise.all([
+            this.prisma.user.findMany({
+                where,
+                orderBy,
+                skip: (page - 1) * limit,
+                take: limit,
+                omit: {
+                    password: true,
+                },
+            }),
+            this.prisma.user.count({ where }),
+        ]);
 
         return {
             data: users,
             pagination: {
                 page,
                 limit,
-                total: users.length,
-                totalPages: Math.ceil(users.length / limit),
+                total,
+                totalPages: Math.ceil(total / limit),
             },
         };
     }

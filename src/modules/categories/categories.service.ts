@@ -40,26 +40,29 @@ export class CategoriesService {
             where.OR = [{ name: { contains: search } }, { slug: { contains: search } }];
         }
 
-        const categories = await this.prisma.category.findMany({
-            where,
-            include: {
-                _count: {
-                    select: {
-                        products: true,
+        const [categories, total] = await Promise.all([
+            this.prisma.category.findMany({
+                where,
+                include: {
+                    _count: {
+                        select: {
+                            products: true,
+                        },
                     },
                 },
-            },
-            skip: (page - 1) * limit,
-            take: limit,
-        });
+                skip: (page - 1) * limit,
+                take: limit,
+            }),
+            this.prisma.category.count({ where }),
+        ]);
 
         return {
             data: categories,
             pagination: {
-                page: 1,
-                limit: 10,
-                total: categories.length,
-                totalPages: Math.ceil(categories.length / 10),
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit),
             },
         };
     }
