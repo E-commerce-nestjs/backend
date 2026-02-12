@@ -4,49 +4,49 @@ import { createClient, RedisClientType } from '@keyv/redis';
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
-  private client: RedisClientType;
+    private client: RedisClientType;
 
-  constructor(private configService: ConfigService) {}
+    constructor(private configService: ConfigService) {}
 
-  async onModuleInit() {
-    this.client = createClient({
-      url: this.configService.get<string>('REDIS_URI'),
-    });
+    async onModuleInit() {
+        this.client = createClient({
+            url: this.configService.get<string>('REDIS_URI'),
+        });
 
-    this.client.on('error', (err) => console.error('Redis Client Error', err));
+        this.client.on('error', err => console.error('Redis Client Error', err));
 
-    await this.client.connect();
-    console.log('Redis connected');
-  }
-
-  async onModuleDestroy() {
-    await this.client.quit();
-  }
-
-  getClient(): RedisClientType {
-    return this.client;
-  }
-
-  async set(key: string, value: string, ttl?: number): Promise<void> {
-    await this.client.set(key, value);
-    if (ttl) {
-      await this.client.expire(key, ttl);
+        await this.client.connect();
+        console.log('Redis connected');
     }
-  }
 
-  async get(key: string): Promise<string | null> {
-    return this.client.get(key);
-  }
+    async onModuleDestroy() {
+        await this.client.quit();
+    }
 
-  async del(key: string): Promise<void> {
-    await this.client.del(key);
-  }
+    getClient(): RedisClientType {
+        return this.client;
+    }
 
-  async setex(key: string, ttl: number, value: string): Promise<void> {
-    await this.client.setEx(key, ttl, value);
-  }
+    async set(key: string, value: string, ttl?: number): Promise<void> {
+        await this.client.set(key, value);
+        if (ttl) {
+            await this.client.expire(key, ttl);
+        }
+    }
 
-  async ping(): Promise<string> {
-    return this.client.ping();
-  }
+    async get(key: string): Promise<string | null> {
+        return this.client.get(key);
+    }
+
+    async del(key: string): Promise<void> {
+        await this.client.del(key);
+    }
+
+    async setex(key: string, ttl: number, value: string): Promise<void> {
+        await this.client.setEx(key, ttl, value);
+    }
+
+    async ping(): Promise<string> {
+        return this.client.ping();
+    }
 }

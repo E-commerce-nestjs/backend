@@ -14,8 +14,10 @@ This creates a robust and scalable backend for an E-Commerce platform built with
 
 - **User Management**: Secure registration and login with JWT Authentication.
 - **Product Catalog**: efficient management of product listings.
+- **Cart Management**: Full-featured shopping cart with extensive logic for guest-to-user merging.
 - **Order Processing**: Handling customer orders and payment integration.
 - **Performance**: Redis caching for optimized data retrieval.
+- **System Reliability**: Comprehensive health checks and monitoring endpoints.
 - **Scalability**: Containerized with Docker for consistent deployment environments.
 
 ---
@@ -41,7 +43,7 @@ The project follows the standard **NestJS Modular Architecture**, emphasizing se
 
 - **Controllers**: Handle incoming HTTP requests and return responses to the client. They are responsible for route handling and request validation.
 - **Services**: Contain the core business logic. They interact with repositories or other services to process data.
-- **Modules**: Organize related components (controllers, services, providers) into cohesive blocks.
+- **Modules**: Organize related components (controllers, services, providers) into cohesive blocks (Auth, Users, Carts, Products, Orders, Payments, etc.).
 - **Prisma Client**: Acts as the data access layer, providing a type-safe interface to the PostgreSQL database.
 - **Guards & Interceptors**: Handle authentication, authorization, and response transformation globally or per-route.
 
@@ -60,7 +62,7 @@ e-commerce-api/
 │   └── schema.prisma      # Database schema definition
 ├── src/                   # Source code
 │   ├── common/            # Shared resources (filters, guards, pipes, utils)
-│   ├── modules/           # Feature modules (Users, Products, Orders, etc.)
+│   ├── modules/           # Feature modules (Auth, Users, Carts, Products, Orders, Payments, etc.)
 │   ├── main.ts            # Application entry point
 │   └── app.module.ts      # Root module
 ├── test/                  # End-to-end tests

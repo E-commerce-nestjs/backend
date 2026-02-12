@@ -6,37 +6,35 @@ import { isDevelopment } from 'src/utils/isDevelopment';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleDestroy, OnModuleInit {
-    constructor(){
+    constructor() {
         super({
             adapter: new PrismaPg({
-                connectionString: process.env.DATABASE_URL
+                connectionString: process.env.DATABASE_URL,
             }),
-            log: isDevelopment() ? ['query', 'error', 'warn'] : ['error']
-        })
+            log: isDevelopment() ? ['query', 'error', 'warn'] : ['error'],
+        });
     }
 
-   async onModuleInit() {
+    async onModuleInit() {
         await this.$connect();
-        console.log("Database connected");
+        console.log('Database connected');
     }
 
     async onModuleDestroy() {
         await this.$disconnect();
-        console.log("Database disconnected");
+        console.log('Database disconnected');
     }
 
     async cleanDatabase() {
-        if(isDevelopment()) {
-           try {
-            const models = getAllModels(this)
-            return this.$transaction([
-                ...models.map((model) => this[model].deleteMany()),
-            ])
-           } catch (error) {
-            console.log(error)
-           } 
-        }else{
-            throw new Error("Cannot clean database in production");
+        if (isDevelopment()) {
+            try {
+                const models = getAllModels(this);
+                return this.$transaction([...models.map(model => this[model].deleteMany())]);
+            } catch (error) {
+                console.log(error);
+            }
+        } else {
+            throw new Error('Cannot clean database in production');
         }
     }
 }

@@ -7,20 +7,21 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { StringValue } from 'ms';
 import { RedisModule } from '../redis/redis.module';
 
-
 @Module({
-  imports:[JwtModule.registerAsync({
-    imports:[ConfigModule],
-    inject:[ConfigService],
-    useFactory:(config:ConfigService)=>({
-      secret: config.get<string>('AUTH_JWT_SECRET_KEY'),
-      signOptions:{
-        expiresIn:config.get<StringValue>('AUTH_JWT_ACCESS_TOKEN_TTL')
-      }
-    })
-  }
-  ),RedisModule],
-  controllers: [AuthController],
-  providers: [AuthService,JwtStrategy],
+    imports: [
+        JwtModule.registerAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: (config: ConfigService) => ({
+                secret: config.get<string>('AUTH_JWT_SECRET_KEY'),
+                signOptions: {
+                    expiresIn: config.get<StringValue>('AUTH_JWT_ACCESS_TOKEN_TTL'),
+                },
+            }),
+        }),
+        RedisModule,
+    ],
+    controllers: [AuthController],
+    providers: [AuthService, JwtStrategy],
 })
 export class AuthModule {}

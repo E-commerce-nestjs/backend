@@ -13,7 +13,7 @@ import { HealthModule } from './modules/health/health.module';
 import { ProductsModule } from './modules/products/products.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
-import { CartsModule } from './carts/carts.module';
+import { CartsModule } from './modules/carts/carts.module';
 
 @Module({
     imports: [
