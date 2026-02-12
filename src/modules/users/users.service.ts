@@ -10,7 +10,7 @@ import * as bcrypt from 'bcrypt';
 export class UsersService {
     constructor(private readonly prisma: PrismaService) {}
 
-    async findAll(query: QueryUserDto): Promise<FindAllUserResponseDto[]> {
+    async findAll(query: QueryUserDto): Promise<FindAllUserResponseDto> {
         const { search, role, sortBy, sortDirection, page = 1, limit = 10 } = query;
 
         const where: Prisma.UserWhereInput = {};
@@ -50,7 +50,7 @@ export class UsersService {
             orderBy.createdAt = 'desc';
         }
 
-        return this.prisma.user.findMany({
+        const users = await this.prisma.user.findMany({
             where,
             orderBy,
             skip: (page - 1) * limit,
@@ -59,6 +59,16 @@ export class UsersService {
                 password: true,
             },
         });
+
+        return {
+            data: users,
+            pagination: {
+                page,
+                limit,
+                total: users.length,
+                totalPages: Math.ceil(users.length / limit),
+            },
+        };
     }
 
     async findOne(id: string): Promise<FindOneUserResponseDto> {

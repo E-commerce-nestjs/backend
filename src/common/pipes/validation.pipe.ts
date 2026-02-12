@@ -21,7 +21,7 @@ export class ValidationPipe implements PipeTransform<any> {
 
             throw new BadRequestException(response);
         }
-        return value;
+        return object;
     }
 
     private toValidate(metatype: Function): boolean {

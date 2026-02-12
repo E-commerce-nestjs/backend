@@ -46,8 +46,8 @@ export class ValidationErrorResponseDto extends AppErrorResponseDto {
 
     @ApiProperty({
         example: {
-            email: ['Email is not valid', 'Email is required'],
-            password: ['Password must be at least 8 characters long'],
+            field_1: ['Error 1', 'Error 2'],
+            field_2: ['Error 3'],
         },
         description: 'Validation errors by field',
     })

@@ -43,26 +43,34 @@ export class UsersController {
             code: HttpStatus.OK,
             message: 'Get all users successfully',
             isArray: true,
-            example: [
-                {
-                    id: '1',
-                    email: 'user1@example.com',
-                    role: Role.USER,
-                    firstName: 'John',
-                    lastName: 'Doe',
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
+            example: {
+                data: [
+                    {
+                        id: '1',
+                        email: 'user1@example.com',
+                        role: Role.USER,
+                        firstName: 'John',
+                        lastName: 'Doe',
+                        createdAt: new Date(),
+                        updatedAt: new Date(),
+                    },
+                    {
+                        id: '2',
+                        email: 'user2@example.com',
+                        role: Role.ADMIN,
+                        firstName: 'Admin',
+                        lastName: 'User',
+                        createdAt: new Date(),
+                        updatedAt: new Date(),
+                    },
+                ],
+                pagination: {
+                    page: 1,
+                    limit: 10,
+                    total: 2,
+                    totalPages: 1,
                 },
-                {
-                    id: '2',
-                    email: 'user2@example.com',
-                    role: Role.ADMIN,
-                    firstName: 'Admin',
-                    lastName: 'User',
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                },
-            ],
+            },
         }),
     })
     @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized', type: UnauthorizedErrorResponseDto })
@@ -72,9 +80,9 @@ export class UsersController {
         description: 'Internal server error',
         type: InternalServerErrorResponseDto,
     })
-    async findAll(@Query() query: QueryUserDto): Promise<AppResponseData<FindAllUserResponseDto[]>> {
-        const users = await this.usersService.findAll(query);
-        return AppResponse.ok<FindAllUserResponseDto[]>(users, 'Get all users successfully');
+    async findAll(@Query() query: QueryUserDto): Promise<AppResponseData<FindAllUserResponseDto>> {
+        const response = await this.usersService.findAll(query);
+        return AppResponse.ok<FindAllUserResponseDto>(response, 'Get all users successfully');
     }
 
     // Get user by id
