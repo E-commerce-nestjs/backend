@@ -13,6 +13,7 @@ import { HealthModule } from './modules/health/health.module';
 import { ProductsModule } from './modules/products/products.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { CartsModule } from './carts/carts.module';
 
 @Module({
     imports: [
@@ -37,6 +38,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
         ProductsModule,
         OrdersModule,
         PaymentsModule,
+        CartsModule,
     ],
     controllers: [AppController],
     providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

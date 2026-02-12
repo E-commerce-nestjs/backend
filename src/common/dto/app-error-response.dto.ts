@@ -145,3 +145,26 @@ export class ForbiddenErrorResponseDto extends AppErrorResponseDto {
     })
     declare errors?: null;
 }
+
+/**
+ * DTO cho Bad Request Error Response
+ */
+export class BadRequestErrorResponseDto extends AppErrorResponseDto {
+    @ApiProperty({
+        example: 400,
+        description: 'HTTP status code for bad request errors',
+    })
+    declare code: number;
+
+    @ApiProperty({
+        example: 'Bad request',
+        description: 'Bad request error message',
+    })
+    declare message: string;
+
+    @ApiProperty({
+        example: null,
+        description: 'Error details object',
+    })
+    declare errors?: null;
+}
