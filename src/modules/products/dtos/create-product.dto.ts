@@ -7,13 +7,13 @@ export class CreateProductDto {
     @ApiProperty({ example: 'Product 1', description: 'Product name' })
     @IsNotEmpty({ message: 'Product name is required' })
     @IsString({ message: 'Product name must be a string' })
-    @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+    @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
     name: string;
 
     @ApiProperty({ example: 'Product description', description: 'Product description' })
     @IsString({ message: 'Product description must be a string' })
     @IsOptional()
-    @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+    @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
     description?: string;
 
     @ApiProperty({ example: 100.0, description: 'Product price' })
@@ -31,13 +31,13 @@ export class CreateProductDto {
     @ApiProperty({ example: 'SKU12345', description: 'Product SKU' })
     @IsNotEmpty({ message: 'Product SKU is required' })
     @IsString({ message: 'Product SKU must be a string' })
-    @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+    @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
     sku: string;
 
     @ApiProperty({ example: 'https://example.com/product.jpg', description: 'Product image url' })
     @IsString({ message: 'Product image url must be a string' })
     @IsOptional()
-    @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+    @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
     imageUrl?: string;
 
     @ApiProperty({ example: true, description: 'Product is active' })

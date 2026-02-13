@@ -4,13 +4,13 @@ import { IsBoolean, IsNumber, IsOptional, IsString, Min } from 'class-validator'
 
 export class UpdateProductDto {
     @ApiProperty({ example: 'Product 1', description: 'Product name' })
-    @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+    @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
     @IsString({ message: 'Name must be a string' })
     @IsOptional()
     name?: string;
 
     @ApiProperty({ example: 'Product description', description: 'Product description' })
-    @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+    @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
     @IsString({ message: 'Description must be a string' })
     @IsOptional()
     description?: string;
@@ -28,13 +28,13 @@ export class UpdateProductDto {
     stock?: number;
 
     @ApiProperty({ example: 'SKU12345', description: 'Product SKU' })
-    @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+    @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
     @IsString({ message: 'SKU must be a string' })
     @IsOptional()
     sku?: string;
 
     @ApiProperty({ example: 'https://example.com/product.jpg', description: 'Product image url' })
-    @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+    @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
     @IsString({ message: 'Image URL must be a string' })
     @IsOptional()
     imageUrl?: string;

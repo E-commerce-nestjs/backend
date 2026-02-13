@@ -1,3 +1,4 @@
+import { Type } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class AppResponseDto<T> {
@@ -25,17 +26,17 @@ interface Metadata<T> {
 }
 
 // Cache to store created DTOs to avoid duplicates
-const dtoCache = new Map<string, any>();
+const dtoCache = new Map<string, Type<any>>();
 
 // Helper function to create typed response DTO for Swagger with unique class names
-export function createAppResponseDto<T>(dataType: new () => T, metadata?: Metadata<T>) {
+export function createAppResponseDto<T>(dataType: new () => T, metadata?: Metadata<T>): Type<AppResponseDto<T | T[]>> {
     const typeName = dataType.name;
     const isArrayInfo = metadata?.isArray ? 'Array' : 'Object';
     const cacheKey = `AppResponseDto_${typeName}_${isArrayInfo}`;
 
     // Return cached DTO if it exists
     if (dtoCache.has(cacheKey)) {
-        return dtoCache.get(cacheKey);
+        return dtoCache.get(cacheKey) as Type<AppResponseDto<T | T[]>>;
     }
 
     // Create new DTO class with unique name

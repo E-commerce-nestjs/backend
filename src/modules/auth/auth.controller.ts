@@ -15,7 +15,7 @@ import { RegisterDto, RegisterResponseDto } from './dtos/register.dto';
 import { LoginDto, LoginResponseDto } from './dtos/login.dto';
 import { UserResponseDto } from '../users/dtos/user-response.dto';
 import { type Request, type Response } from 'express';
-import { AppResponse, AppResponseData } from 'src/common/bases/api-response';
+import { AppResponse, type AppResponseData } from 'src/common/bases/api-response';
 import { setRefreshTokenCookie } from './helpers/cookies.helper';
 import { JwtAuthGuard } from './guards/auth.guard';
 import { User as UserDecorator } from './decorators/user.decorator';
@@ -117,7 +117,7 @@ export class AuthController {
         type: createAppResponseDto(UserResponseDto, { code: HttpStatus.OK, message: 'User retrieved successfully' }),
     })
     @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Unauthorized', type: UnauthorizedErrorResponseDto })
-    async me(@UserDecorator() user: UserResponseDto): Promise<AppResponseData<UserResponseDto>> {
+    me(@UserDecorator() user: UserResponseDto): AppResponseData<UserResponseDto> {
         return AppResponse.ok<UserResponseDto>(user, 'Get user successfully', HttpStatus.OK);
     }
 }

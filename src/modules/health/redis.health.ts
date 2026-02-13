@@ -25,7 +25,7 @@ export class RedisHealthIndicator {
 
             // Mark the health indicator as up
             return indicator.up({ badboys: 'Redis ping success' });
-        } catch (error) {
+        } catch {
             return indicator.down('Unable to retrieve dogs');
         }
     }

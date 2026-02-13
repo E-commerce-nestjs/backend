@@ -15,7 +15,6 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { createAppResponseDto } from 'src/common/dto/app-response.dto';
 import {
     ValidationErrorResponseDto,
-    ForbiddenErrorResponseDto,
     InternalServerErrorResponseDto,
     NotFoundErrorResponseDto,
     UnauthorizedErrorResponseDto,

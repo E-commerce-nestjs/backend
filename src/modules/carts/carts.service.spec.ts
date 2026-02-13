@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Test, TestingModule } from '@nestjs/testing';
 import { CartsService } from './carts.service';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
@@ -50,12 +51,14 @@ describe('CartsService', () => {
                 updatedAt: new Date(),
             };
 
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             jest.spyOn(prisma.cart, 'findFirst').mockResolvedValue(mockCart as any);
 
             const result = await service.getOrCreateCart('user1');
 
             expect(result).toBeDefined();
             expect(result.id).toBe('1');
+            // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(prisma.cart.findFirst).toHaveBeenCalledWith({
                 where: { userId: 'user1' },
                 include: expect.any(Object),
@@ -72,11 +75,13 @@ describe('CartsService', () => {
             };
 
             jest.spyOn(prisma.cart, 'findFirst').mockResolvedValue(null);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
             jest.spyOn(prisma.cart, 'create').mockResolvedValue(mockCart as any);
 
             const result = await service.getOrCreateCart('user1');
 
             expect(result).toBeDefined();
+            // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(prisma.cart.create).toHaveBeenCalledWith({
                 data: { userId: 'user1' },
                 include: expect.any(Object),

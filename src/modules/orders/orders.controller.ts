@@ -59,7 +59,7 @@ export class OrdersController {
         @CurrentUser() user: UserResponseDto,
         @Body() createOrderDto: CreateOrderDto,
     ): Promise<AppResponseData<CreateOrderResponseDto>> {
-        const order = await this.ordersService.create(user.id, createOrderDto);
+        const order = (await this.ordersService.create(user.id, createOrderDto)) as unknown as CreateOrderResponseDto;
         return AppResponse.ok<CreateOrderResponseDto>(order, 'Order created successfully');
     }
 
@@ -152,7 +152,7 @@ export class OrdersController {
         type: InternalServerErrorResponseDto,
     })
     async findOneForAdmin(@Param('id') id: string): Promise<AppResponseData<FindOrderByIdResponseDto>> {
-        const order = await this.ordersService.findOneForAdmin(id);
+        const order = (await this.ordersService.findOneForAdmin(id)) as unknown as FindOrderByIdResponseDto;
         return AppResponse.ok<FindOrderByIdResponseDto>(order, 'Get order successfully');
     }
 
@@ -182,7 +182,7 @@ export class OrdersController {
         @CurrentUser() user: UserResponseDto,
         @Param('id') id: string,
     ): Promise<AppResponseData<FindOrderByIdResponseDto>> {
-        const order = await this.ordersService.findOne(user.id, id);
+        const order = (await this.ordersService.findOne(user.id, id)) as unknown as FindOrderByIdResponseDto;
         return AppResponse.ok<FindOrderByIdResponseDto>(order, 'Get order successfully');
     }
 
@@ -214,7 +214,10 @@ export class OrdersController {
         @Param('id') id: string,
         @Body() updateOrderDto: UpdateOrderDto,
     ): Promise<AppResponseData<FindOrderByIdResponseDto>> {
-        const order = await this.ordersService.updateForAdmin(id, updateOrderDto);
+        const order = (await this.ordersService.updateForAdmin(
+            id,
+            updateOrderDto,
+        )) as unknown as FindOrderByIdResponseDto;
         return AppResponse.ok<FindOrderByIdResponseDto>(order, 'Update order successfully');
     }
 
@@ -255,7 +258,11 @@ export class OrdersController {
         @Param('id') id: string,
         @Body() updateOrderDto: UpdateOrderDto,
     ): Promise<AppResponseData<FindOrderByIdResponseDto>> {
-        const order = await this.ordersService.update(user.id, id, updateOrderDto);
+        const order = (await this.ordersService.update(
+            user.id,
+            id,
+            updateOrderDto,
+        )) as unknown as FindOrderByIdResponseDto;
         return AppResponse.ok<FindOrderByIdResponseDto>(order, 'Update order successfully');
     }
 }

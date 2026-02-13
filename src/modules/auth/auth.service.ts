@@ -7,7 +7,7 @@ import { createHash, randomBytes } from 'crypto';
 import { LoginDto, LoginServiceResponseDto } from './dtos/login.dto';
 import { ConfigService } from '@nestjs/config';
 import { RefreshTokenServiceResponseDto } from './dtos/refresh.dto';
-import { RedisService } from '../redis/redis.service';
+
 import { UserResponseDto } from '../users/dtos/user-response.dto';
 
 @Injectable()
@@ -89,7 +89,7 @@ export class AuthService {
         };
     }
 
-    async updateRefreshToken(id: string, refreshToken: string): Promise<any> {
+    async updateRefreshToken(id: string, refreshToken: string): Promise<{ refreshToken: string; refreshTtl: number }> {
         // Hash refresh token trước khi lưu DB
         const hashedToken = createHash('sha256').update(refreshToken).digest('hex');
 

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Transform, Type } from 'class-transformer';
-import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { OrderStatus } from 'generated/prisma/enums';
 import { PaginationDto } from 'src/modules/categories/dtos/pagination.dto';
 import { Order } from '../entities/order.entity';

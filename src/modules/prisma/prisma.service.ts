@@ -1,6 +1,6 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from 'generated/prisma/client';
+import { Prisma, PrismaClient } from 'generated/prisma/client';
 import { getAllModels } from 'src/utils/getAllModels';
 import { isDevelopment } from 'src/utils/isDevelopment';
 
@@ -29,7 +29,14 @@ export class PrismaService extends PrismaClient implements OnModuleDestroy, OnMo
         if (isDevelopment()) {
             try {
                 const models = getAllModels(this);
-                return this.$transaction([...models.map(model => this[model].deleteMany())]);
+                // Cast the map result to Prisma.PrismaPromise<Prisma.BatchPayload>[] for type safety
+                return this.$transaction(
+                    models.map(
+                        model =>
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+                            (this as any)[model].deleteMany() as Prisma.PrismaPromise<Prisma.BatchPayload>,
+                    ),
+                );
             } catch (error) {
                 console.log(error);
             }

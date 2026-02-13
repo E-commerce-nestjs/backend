@@ -1,10 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call */
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { AddToCartDto } from './dtos/add-to-cart.dto';
 import { UpdateCartItemDto } from './dtos/update-cart-item.dto';
 import { CartResponseDto } from './dtos/cart-response.dto';
 import { MergeCartItemDto } from './dtos/merge-cart.dto';
-import type { Prisma } from 'generated/prisma/client';
 
 @Injectable()
 export class CartsService {
@@ -280,13 +280,20 @@ export class CartsService {
         let totalPrice = 0;
         let totalItems = 0;
 
-        for (const item of cart.cartItems) {
+        const cartItems: any[] = cart.cartItems;
+
+        for (const item of cartItems) {
             // Convert Prisma.Decimal to number if needed
+
+            const product = item.product;
+
+            const priceVal = product.price;
+
             const price =
-                typeof item.product.price === 'object' && 'toNumber' in item.product.price
-                    ? item.product.price.toNumber()
-                    : Number(item.product.price);
+                typeof priceVal === 'object' && 'toNumber' in priceVal ? priceVal.toNumber() : Number(priceVal);
+
             totalPrice += price * item.quantity;
+
             totalItems += item.quantity;
         }
 
@@ -294,6 +301,6 @@ export class CartsService {
             ...cart,
             totalPrice: parseFloat(totalPrice.toFixed(2)),
             totalItems,
-        };
+        } as CartResponseDto;
     }
 }

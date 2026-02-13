@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CartsController } from './carts.controller';
+import { CartResponseDto } from './dtos/cart-response.dto';
 import { CartsService } from './carts.service';
 
 describe('CartsController', () => {
@@ -44,12 +45,13 @@ describe('CartsController', () => {
                 updatedAt: new Date(),
             };
 
-            jest.spyOn(service, 'getOrCreateCart').mockResolvedValue(mockCart as any);
+            jest.spyOn(service, 'getOrCreateCart').mockResolvedValue(mockCart as unknown as CartResponseDto);
 
             const result = await controller.getCart('user1');
 
             expect(result).toBeDefined();
             expect(result.data).toEqual(mockCart);
+            // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(service.getOrCreateCart).toHaveBeenCalledWith('user1');
         });
     });

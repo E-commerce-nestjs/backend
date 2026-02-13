@@ -1,8 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { OrderStatus } from 'generated/prisma/enums';
 import type { Prisma } from 'generated/prisma/client';
-import { Type } from 'class-transformer';
-import { ValidateNested } from 'class-validator';
 
 export class OrderItem {
     @ApiProperty({ example: '1', description: 'Order Item ID' })

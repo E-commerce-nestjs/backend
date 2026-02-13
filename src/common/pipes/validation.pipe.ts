@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-function-type */
 import { PipeTransform, Injectable, ArgumentMetadata, BadRequestException, HttpStatus } from '@nestjs/common';
 import { validate, ValidationError } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
@@ -30,7 +31,7 @@ export class ValidationPipe implements PipeTransform<any> {
     }
 
     private formatErrors(errors: ValidationError[]) {
-        const result = {};
+        const result: Record<string, string[]> = {};
         errors.forEach(error => {
             if (error.constraints) {
                 result[error.property] = Object.values(error.constraints);

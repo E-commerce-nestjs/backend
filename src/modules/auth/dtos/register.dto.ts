@@ -8,7 +8,7 @@ export class RegisterDto {
     @ApiProperty({ example: 'john@gmail.com', description: 'User email' })
     @IsEmail({}, { message: 'Email is not valid' })
     @IsString({ message: 'Email must be a string' })
-    @Transform(({ value }) => value.toLowerCase().trim())
+    @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.toLowerCase().trim() : value))
     @IsNotEmpty({ message: 'Email is required' })
     email: string;
 
@@ -28,13 +28,13 @@ export class RegisterDto {
     confirmPassword: string;
 
     @ApiProperty({ example: 'John', description: 'User first name' })
-    @Transform(({ value }) => value.trim())
+    @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
     @IsOptional()
     @IsString({ message: 'Name must be a string' })
     firstName?: string;
 
     @ApiProperty({ example: 'Doe', description: 'User last name' })
-    @Transform(({ value }) => value.trim())
+    @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
     @IsOptional()
     @IsString({ message: 'Name must be a string' })
     lastName?: string;

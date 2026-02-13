@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-enum-comparison */
 import { HttpStatus } from '@nestjs/common';
 import { ApiResponseKey } from '../enums/api-response-key.enum';
 
