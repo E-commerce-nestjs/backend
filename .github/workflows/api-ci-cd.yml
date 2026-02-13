@@ -1,0 +1,3 @@
+name: CI/CD Nestjs to ECR to EC2
+
+on:
