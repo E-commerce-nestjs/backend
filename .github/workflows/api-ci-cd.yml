@@ -61,7 +61,7 @@ jobs:
 
             # Build Docker image
             - name: Build Docker image
-              run: docker build --no-cache -t nestjs-ecomerce:latest .
+              run: docker build --platform linux/amd64 --no-cache -t nestjs-ecomerce:latest .
 
             #  Tag Docker Image to ECR
             - name: Tag Docker Image to ECR
