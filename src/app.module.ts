@@ -19,6 +19,7 @@ import { CartsModule } from './modules/carts/carts.module';
     imports: [
         ConfigModule.forRoot({
             isGlobal: true,
+            ignoreEnvFile: process.env.NODE_ENV === 'production',
             envFilePath: ['.env', `.env.${process.env.NODE_ENV || 'development'}`],
             validate,
         }),
