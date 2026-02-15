@@ -1,0 +1,87 @@
+services:
+    # Ứng dụng NestJS chính
+    api:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: nestjs-ecomerce-api
+        ports:
+            - '${PORT}:3000' # Map cổng PORT ở máy host (8000) vào cổng 3000 của container
+        environment:
+            # Truyền các biến môi trường cần thiết vào container
+            NODE_ENV: ${NODE_ENV}
+            PORT: 3000 # Trong container app chạy port 3000
+            DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres_db:${POSTGRES_PORT}/${POSTGRES_DB}?schema=public
+            REDIS_URI: redis://:${REDIS_PASSWORD}@redis_db:6379
+            AUTH_JWT_SECRET_KEY: ${AUTH_JWT_SECRET_KEY}
+            AUTH_JWT_ACCESS_TOKEN_TTL: ${AUTH_JWT_ACCESS_TOKEN_TTL}
+            AUTH_JWT_REFRESH_TOKEN_TTL: ${AUTH_JWT_REFRESH_TOKEN_TTL}
+            STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+            ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+        depends_on:
+            - postgres_db # Đợi DB chạy xong mới chạy App
+            - redis_db # Đợi Redis chạy xong mới chạy App
+        networks:
+            - ecommerce-network
+
+    # Database PostgreSQL
+    postgres_db:
+        image: postgres:15-alpine
+        container_name: ${POSTGRES_CONTAINER_NAME}
+        restart: always
+        environment:
+            POSTGRES_USER: ${POSTGRES_USER}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+            POSTGRES_DB: ${POSTGRES_DB}
+        ports:
+            - '${POSTGRES_PORT}:${POSTGRES_PORT}' # Map cổng 5434 ra ngoài
+        volumes:
+            - postgres_data:/var/lib/postgresql/data # Lưu dữ liệu bền vững
+        networks:
+            - ecommerce-network
+        command: -p ${POSTGRES_PORT} # Chạy Postgres ở cổng custom (5434)
+
+    # Redis Cache
+    redis_db:
+        image: redis:7-alpine
+        container_name: ${REDIS_CONTAINER_NAME}
+        restart: always
+        ports:
+            - '${REDIS_PORT}:6379' # Map cổng 6381 (host) -> 6379 (container)
+        volumes:
+            - redis_data:/data # Lưu dữ liệu Redis bền vững
+        networks:
+            - ecommerce-network
+        # Không cần command vì Redis mặc định chạy ở 6379
+        command: redis-server --requirepass ${REDIS_PASSWORD}
+
+networks:
+    ecommerce-network:
+        driver: bridge
+
+volumes:
+    postgres_data:
+    redis_data:
+
+# 1. networks (Mạng ảo)
+# Ý nghĩa: Trong Docker, mỗi container mặc định chạy độc lập. Để các container (như api của bạn) có thể nhìn thấy và nói chuyện được với database (postgres_db) và cache (redis_db), chúng cần được kết nối vào cùng một mạng ảo.
+# Ví dụ:
+# networks:
+#   - ecommerce-network
+# Khi khai báo như thế này, container api có thể gọi tới database bằng tên dịch vụ postgres_db (như một domain nội bộ) thay vì phải tìm IP phức tạp.
+# 2. volumes (Ổ đĩa dữ liệu)
+# Vấn đề: Mặc định, dữ liệu trong container là tạm thời. Nếu bạn xóa container (docker-compose down), mọi dữ liệu trong đó (ví dụ: các bản ghi user mới tạo trong database) sẽ biến mất vĩnh viễn.
+# Giải pháp: volumes giúp bạn lưu trữ dữ liệu bền vững ra ngoài máy thật (host).
+# Ví dụ:
+# yaml
+# volumes:
+#   - postgres_data:/var/lib/postgresql/data
+# Dòng này bảo Docker: "Hãy lấy thư mục chứa dữ liệu /var/lib/postgresql/data bên trong container Postgres và ánh xạ nó ra một vùng chứa tên là postgres_data trên máy chủ". Nhờ đó, dù bạn có xóa đi cài lại container DB bao nhiêu lần, dữ liệu cũ vẫn còn nguyên.
+# 3. command (Lệnh khởi chạy tùy chỉnh)
+# Ý nghĩa: Mỗi Docker Image (như postgres:15-alpine) thường có sẵn một lệnh mặc định để chạy ứng dụng (ví dụ: chạy Postgres ở cổng 5432). Nhưng đôi khi bạn muốn thay đổi hành vi mặc định đó.
+# Ví dụ:
+# Mặc định, Postgres chạy ở cổng 5432.
+# Nhưng trong file
+# .env
+#  bạn muốn dùng cổng 5434.
+# Nên bạn dùng: command: -p 5434 để ép tiến trình Postgres bên trong container lắng nghe ở cổng 5434 thay vì 5432. Tương tự với Redis servers.

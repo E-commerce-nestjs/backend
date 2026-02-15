@@ -28,17 +28,101 @@ jobs:
             - name: Lint
               run: npm run lint
 
-            - name: Build NestJS application
-              run: npm run build
+            - name: Run test
+              run: npm run test
 
-            - name: Login to Amazon ECR
-              uses: aws-actions/amazon-ecr-login@v1
+            - name: NPM audit (high severity)
+              run: npm audit --audit-level=high
+
+    deploy:
+        needs: ci
+        runs-on: ubuntu-latest
+        permissions:
+            id-token: write #id-token: write (Quan trọng nhất):
+            # Tại sao cần: Để GitHub Actions có thể xin một "thẻ bài" tạm thời (JWT Token) từ GitHub.
+            # Tác dụng: AWS sẽ kiểm tra "thẻ bài" này để cho phép bạn đăng nhập mà không cần lưu AWS_ACCESS_KEY_ID và AWS_SECRET_ACCESS_KEY lâu dài trong GitHub Secrets nữa. Đây là chuẩn bảo mật hiện đại (Keyless authentication). Nếu không có quyền write này, bước đăng nhập AWS (aws-actions/configure-aws-credentials) sẽ bị lỗi.
+            contents: read # Tại sao cần: Để cho phép action actions/checkout có quyền clone (tải) mã nguồn của bạn về máy chủ chạy CI/CD.
+            # Tác dụng: Đảm bảo workflow chỉ được đọc code chứ không được phép sửa hay đẩy code ngược lại repo (trừ khi bạn cấp quyền write), giúp an toàn hơn.
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+
+            # Login to AWS via OIDC instead of using AWS secret access key
+            - name: Config AWS OIDC
+              uses: aws-actions/configure-aws-credentials@v2
               with:
-                  registry-uri: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-                  username: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
+                  aws-region: ${{ secrets.AWS_REGION }}
 
-            - name: Build and push Docker image
+            - name: Login to ECR
               run: |
-                  docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/nestjs-app:${{ github.sha }} .
-                  docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/nestjs-app:${{ github.sha }}
+                  aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
+                  docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY }}
+
+            # Build Docker image
+            - name: Build Docker image
+              run: docker build --no-cache -t nestjs-ecomerce:latest .
+
+            #  Tag Docker Image to ECR
+            - name: Tag Docker Image to ECR
+              run: docker tag nestjs-ecomerce:latest ${{ secrets.ECR_REPOSITORY }}:latest
+
+            # Push Docker Image to ECR
+            - name: Push Docker Image to ECR
+              run: docker push ${{ secrets.ECR_REPOSITORY }}:latest
+
+            # Deploy to EC2
+            - name: Deploy to EC2
+              uses: appleboy/ssh-action@v0.1.7
+              with:
+                  host: ${{ secrets.EC2_HOST }}
+                  username: ${{ secrets.EC2_USER }}
+                  key: ${{ secrets.EC2_KEY }}
+                  port: 22
+                  script: |
+                      docker pull ${{ secrets.ECR_REPOSITORY }}:latest
+                      docker stop nestjs-ecomerce-api || true
+                      docker rm nestjs-ecomerce-api || true
+
+                      SECRETS_JSON=$(aws secretsmanager get-secret-value \
+                      --secret-id nestjs-prod-secrets \
+                      --query SecretString \
+                      --output text)
+
+                      export NODE_ENV=production
+                      export PORT=$(echo $SECRETS_JSON | jq -r .PORT)
+                      export API_URL=$(echo $SECRETS_JSON | jq -r .API_URL)
+                      export ALLOWED_ORIGINS=$(echo $SECRETS_JSON | jq -r .ALLOWED_ORIGINS)
+                      export DATABASE_URL=$(echo $SECRETS_JSON | jq -r .DATABASE_URL)
+                      export POSTGRES_USER=$(echo $SECRETS_JSON | jq -r .POSTGRES_USER)
+                      export POSTGRES_PASSWORD=$(echo $SECRETS_JSON | jq -r .POSTGRES_PASSWORD)
+                      export POSTGRES_DB=$(echo $SECRETS_JSON | jq -r .POSTGRES_DB)
+                      export AUTH_JWT_SECRET_KEY=$(echo $SECRETS_JSON | jq -r .AUTH_JWT_SECRET_KEY)
+                      export AUTH_JWT_ACCESS_TOKEN_TTL=$(echo $SECRETS_JSON | jq -r .AUTH_JWT_ACCESS_TOKEN_TTL)
+                      export AUTH_JWT_REFRESH_TOKEN_TTL=$(echo $SECRETS_JSON | jq -r .AUTH_JWT_REFRESH_TOKEN_TTL)
+                      export REDIS_URI=$(echo $SECRETS_JSON | jq -r .REDIS_URI)
+                      export REDIS_PASSWORD=$(echo $SECRETS_JSON | jq -r .REDIS_PASSWORD)
+                      export STRIPE_SECRET_KEY=$(echo $SECRETS_JSON | jq -r .STRIPE_SECRET_KEY)
+
+                      docker run -d \
+                        -p $PORT:$PORT \
+                        --name nestjs-ecomerce-api \
+                        --log-driver=awslogs \
+                        --log-opt awslogs-region=${{ secrets.AWS_REGION }} \
+                        --log-opt awslogs-group=nestjs-ecomerce-api \
+                        --log-opt awslogs-stream=app-logs \
+                        -e NODE_ENV \
+                        -e PORT \
+                        -e API_URL \
+                        -e ALLOWED_ORIGINS \
+                        -e DATABASE_URL \
+                        -e POSTGRES_USER \
+                        -e POSTGRES_PASSWORD \
+                        -e POSTGRES_DB \
+                        -e AUTH_JWT_SECRET_KEY \
+                        -e AUTH_JWT_ACCESS_TOKEN_TTL \
+                        -e AUTH_JWT_REFRESH_TOKEN_TTL \
+                        -e REDIS_URI \
+                        -e REDIS_PASSWORD \
+                        -e STRIPE_SECRET_KEY \
+                        ${{ secrets.ECR_REPOSITORY }}:latest
