@@ -80,49 +80,115 @@ jobs:
                   key: ${{ secrets.EC2_KEY }}
                   port: 22
                   script: |
-                      docker pull ${{ secrets.ECR_REPOSITORY }}:latest
-                      docker stop nestjs-ecomerce-api || true
-                      docker rm nestjs-ecomerce-api || true
+                      # Login to ECR
+                      aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY }}
 
+                      # Get secrets
                       SECRETS_JSON=$(aws secretsmanager get-secret-value \
                       --secret-id nestjs-prod-secrets \
                       --query SecretString \
                       --output text)
 
+                      # Export env vars manually for docker-compose to pick up
                       export NODE_ENV=production
                       export PORT=$(echo $SECRETS_JSON | jq -r .PORT)
                       export API_URL=$(echo $SECRETS_JSON | jq -r .API_URL)
                       export ALLOWED_ORIGINS=$(echo $SECRETS_JSON | jq -r .ALLOWED_ORIGINS)
-                      export DATABASE_URL=$(echo $SECRETS_JSON | jq -r .DATABASE_URL)
                       export POSTGRES_USER=$(echo $SECRETS_JSON | jq -r .POSTGRES_USER)
                       export POSTGRES_PASSWORD=$(echo $SECRETS_JSON | jq -r .POSTGRES_PASSWORD)
                       export POSTGRES_DB=$(echo $SECRETS_JSON | jq -r .POSTGRES_DB)
+                      export POSTGRES_PORT=$(echo $SECRETS_JSON | jq -r .POSTGRES_PORT)
+                      export POSTGRES_CONTAINER_NAME=postgres_ecommerce
+                      # Construct DATABASE_URL internally or use the one from secrets if it matches inter-container comms
+                      # Better to reconstruct it using container name 'postgres_db' for internal network
+                      export DATABASE_URL="postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@postgres_db:$POSTGRES_PORT/$POSTGRES_DB?schema=public"
+
                       export AUTH_JWT_SECRET_KEY=$(echo $SECRETS_JSON | jq -r .AUTH_JWT_SECRET_KEY)
                       export AUTH_JWT_ACCESS_TOKEN_TTL=$(echo $SECRETS_JSON | jq -r .AUTH_JWT_ACCESS_TOKEN_TTL)
                       export AUTH_JWT_REFRESH_TOKEN_TTL=$(echo $SECRETS_JSON | jq -r .AUTH_JWT_REFRESH_TOKEN_TTL)
-                      export REDIS_URI=$(echo $SECRETS_JSON | jq -r .REDIS_URI)
+
                       export REDIS_PASSWORD=$(echo $SECRETS_JSON | jq -r .REDIS_PASSWORD)
+                      export REDIS_PORT=$(echo $SECRETS_JSON | jq -r .REDIS_PORT)
+                      export REDIS_CONTAINER_NAME=redis_data
+                      # Internal Redis URI using container name 'redis_db'
+                      export REDIS_URI="redis://:$REDIS_PASSWORD@redis_db:6379"
+
                       export STRIPE_SECRET_KEY=$(echo $SECRETS_JSON | jq -r .STRIPE_SECRET_KEY)
 
-                      docker run -d \
-                        -p $PORT:$PORT \
-                        --name nestjs-ecomerce-api \
-                        --log-driver=awslogs \
-                        --log-opt awslogs-region=${{ secrets.AWS_REGION }} \
-                        --log-opt awslogs-group=nestjs-ecomerce-api \
-                        --log-opt awslogs-stream=app-logs \
-                        -e NODE_ENV \
-                        -e PORT \
-                        -e API_URL \
-                        -e ALLOWED_ORIGINS \
-                        -e DATABASE_URL \
-                        -e POSTGRES_USER \
-                        -e POSTGRES_PASSWORD \
-                        -e POSTGRES_DB \
-                        -e AUTH_JWT_SECRET_KEY \
-                        -e AUTH_JWT_ACCESS_TOKEN_TTL \
-                        -e AUTH_JWT_REFRESH_TOKEN_TTL \
-                        -e REDIS_URI \
-                        -e REDIS_PASSWORD \
-                        -e STRIPE_SECRET_KEY \
-                        ${{ secrets.ECR_REPOSITORY }}:latest
+                      # Create docker-compose.prod.yml
+                      cat <<EOF > docker-compose.prod.yml
+                      version: '3.8'
+                      services:
+                        api:
+                          image: ${{ secrets.ECR_REPOSITORY }}:latest
+                          container_name: nestjs-ecomerce-api
+                          restart: always
+                          ports:
+                            - "$PORT:$PORT"
+                          environment:
+                            NODE_ENV: production
+                            PORT: $PORT
+                            DATABASE_URL: $DATABASE_URL
+                            REDIS_URI: $REDIS_URI
+                            AUTH_JWT_SECRET_KEY: $AUTH_JWT_SECRET_KEY
+                            AUTH_JWT_ACCESS_TOKEN_TTL: $AUTH_JWT_ACCESS_TOKEN_TTL
+                            AUTH_JWT_REFRESH_TOKEN_TTL: $AUTH_JWT_REFRESH_TOKEN_TTL
+                            STRIPE_SECRET_KEY: $STRIPE_SECRET_KEY
+                            ALLOWED_ORIGINS: $ALLOWED_ORIGINS
+                          depends_on:
+                            - postgres_db
+                            - redis_db
+                          networks:
+                            - ecommerce-network
+                          logging:
+                             driver: awslogs
+                             options:
+                               awslogs-region: ${{ secrets.AWS_REGION }}
+                               awslogs-group: nestjs-ecomerce-api
+                               awslogs-stream: app-logs
+
+                        postgres_db:
+                          image: postgres:15-alpine
+                          container_name: $POSTGRES_CONTAINER_NAME
+                          restart: always
+                          environment:
+                            POSTGRES_USER: $POSTGRES_USER
+                            POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+                            POSTGRES_DB: $POSTGRES_DB
+                          ports:
+                            - "$POSTGRES_PORT:$POSTGRES_PORT"
+                          volumes:
+                            - postgres_data:/var/lib/postgresql/data
+                          networks:
+                            - ecommerce-network
+                          command: -p $POSTGRES_PORT
+
+                        redis_db:
+                          image: redis:7-alpine
+                          container_name: $REDIS_CONTAINER_NAME
+                          restart: always
+                          ports:
+                            - "$REDIS_PORT:6379"
+                          volumes:
+                            - redis_data:/data
+                          networks:
+                            - ecommerce-network
+                          command: redis-server --requirepass $REDIS_PASSWORD
+
+                      networks:
+                        ecommerce-network:
+                          driver: bridge
+
+                      volumes:
+                        postgres_data:
+                        redis_data:
+                      EOF
+
+                      # Pull latest images
+                      docker compose -f docker-compose.prod.yml pull
+
+                      # Start services
+                      docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+                      # Cleanup unused images
+                      docker image prune -f

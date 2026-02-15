@@ -29,7 +29,7 @@ async function bootstrap() {
             },
             'JWT-auth',
         )
-        .addServer(`${process.env.API_URL || 'http://localhost:3000'}`, 'Development server')
+        .addServer(`${process.env.API_URL || 'http://localhost:8000'}`, 'Development server')
         .build();
     const documentFactory = () => SwaggerModule.createDocument(app, config);
     if (process.env.NODE_ENV !== 'production') {
@@ -61,7 +61,7 @@ async function bootstrap() {
     // cookie parser
     app.use(cookieParser());
 
-    await app.listen(process.env.PORT ?? 3000);
+    await app.listen(process.env.PORT ?? 8000);
 }
 bootstrap().catch(error => {
     Logger.error('Failed to start the application', error);
