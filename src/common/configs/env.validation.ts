@@ -1,5 +1,5 @@
 // src/config/env.validation.ts
-import { plainToInstance } from 'class-transformer';
+import { plainToInstance, Type } from 'class-transformer';
 import { IsEnum, IsNumber, IsString, validateSync } from 'class-validator';
 
 enum Environment {
@@ -13,6 +13,7 @@ export class EnvironmentVariables {
     NODE_ENV: Environment;
 
     @IsNumber()
+    @Type(() => Number)
     PORT: number;
 
     @IsString()
@@ -25,6 +26,7 @@ export class EnvironmentVariables {
     AUTH_JWT_ACCESS_TOKEN_TTL: string;
 
     @IsNumber()
+    @Type(() => Number)
     AUTH_JWT_REFRESH_TOKEN_TTL: number;
 
     @IsString()
